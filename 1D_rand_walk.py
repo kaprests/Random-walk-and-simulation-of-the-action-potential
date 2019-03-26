@@ -17,15 +17,12 @@ for i in range(steps):
         particles[j] = np.roll(particles[j], int(steps_vec[j]))
 
 dist = np.sum(particles, 0)
-
 params = norm.fit(dist)
 print(params)
 fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
 
-
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
-
 ax1.bar(x_vec, dist)
 ax2.plot(x_vec, fitted_pdf)
 
