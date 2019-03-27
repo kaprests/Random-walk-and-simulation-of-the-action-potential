@@ -19,7 +19,7 @@ def P_min(x, V):
     return Pm
 
 
-def rand_walk_pot(p_pos, V):
+def rand_walk(p_pos, V):
     for i in range(steps):
         steps_vec = np.random.rand(N)
         for x in p_pos:
@@ -31,7 +31,7 @@ def rand_walk_pot(p_pos, V):
 
 
 def plot_distribution(p_pos, V):
-    p, params = rand_walk_pot(p_pos, V)
+    p, params = rand_walk(p_pos, V)
     x_vec = np.arange(min(p), max(p))
     fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
     fig, ax1 = plt.subplots()
