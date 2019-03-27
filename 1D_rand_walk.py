@@ -37,7 +37,7 @@ def plot_distribution(p_pos, V):
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
     ax1.hist(p)
-    #ax2.plot(x_vec, fitted_pdf, color="r")
+    ax2.plot(x_vec, fitted_pdf, color="r")
     plt.show()
 
 
