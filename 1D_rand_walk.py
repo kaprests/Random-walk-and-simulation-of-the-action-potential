@@ -36,7 +36,7 @@ def plot_distribution(p_pos, V):
     fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
     fig, ax1 = plt.subplots()
     ax2 = ax1.twinx()
-    ax1.hist(p)
+    ax1.hist(p, bins=50)
     ax2.plot(x_vec, fitted_pdf, color="r")
     plt.show()
 
