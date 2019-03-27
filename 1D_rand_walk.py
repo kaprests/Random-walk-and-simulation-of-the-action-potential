@@ -8,8 +8,6 @@ steps = 100
 field = 2*steps+1
 
 
-
-'''Random Walk in potential'''
 particles = np.zeros(N)
 k = 0.5e-20
 h = 1
@@ -42,14 +40,22 @@ def V2(x):
     else:
         return 0
 
-p, params = rand_walk_pot(particles, V1)
-x_vec = np.arange(min(p), max(p))
-fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
-print(params)
+def V3(x):
+    if x < -3*h:
+        return -k
+    elif -3*h < x and x < 3*h:
+        return k*(-1 + 2 * ((x + 3*h)/(6*h)))
+    else:
+        return k
 
-fig, ax1 = plt.subplots()
-ax2 = ax1.twinx()
+def plot_distribution(p_pos, V):
+    p, params = rand_walk_pot(p_pos, V)
+    x_vec = np.arange(min(p), max(p))
+    fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.hist(p)
+    ax2.plot(x_vec, fitted_pdf, color="r")
+    plt.show()
 
-ax1.hist(p)
-ax2.plot(x_vec, fitted_pdf, color="r")
-plt.show()
+plot_distribution(particles, V0)
