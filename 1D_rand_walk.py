@@ -31,10 +31,14 @@ plt.show()
 
 
 '''Random Walk in potential'''
+from scipy.constants import Boltzmann as kb
+
 particles = np.zeros(N)
-k = 1
+k = 0.5e-20
 h = 1
-beta = 1
+T=300
+beta = 1/(kb*T)
+print(beta*k)
 V = lambda x: k*x
 
 def P_min(x):
@@ -51,6 +55,5 @@ for i in range(steps):
         steps_vec[steps_vec != 1] = -1
     particles += steps_vec
 
-print(particles)
 plt.hist(np.sort(particles), x_vec)
 plt.show()
