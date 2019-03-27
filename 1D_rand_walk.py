@@ -5,20 +5,19 @@ from scipy.constants import Boltzmann as kb
 
 N = 1000
 steps = 100
-field = 2*steps+1
-
-
 particles = np.zeros(N)
-k = 0.5e-20
 h = 1
-T=300
+T=1
+beta_k = 10
 beta = 1/(kb*T)
+k = beta_k/beta
 
 def P_min(x, V):
     rel_prob = np.exp(-beta*(V(x-h)-V(x+h)))
     Pp = 1/(1 + rel_prob)
     Pm = 1 - Pp
     return Pm
+
 
 def rand_walk_pot(p_pos, V):
     for i in range(steps):
@@ -29,6 +28,18 @@ def rand_walk_pot(p_pos, V):
         p_pos += steps_vec
         params = norm.fit(p_pos)
     return p_pos, params
+
+
+def plot_distribution(p_pos, V):
+    p, params = rand_walk_pot(p_pos, V)
+    x_vec = np.arange(min(p), max(p))
+    fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.hist(p)
+    #ax2.plot(x_vec, fitted_pdf, color="r")
+    plt.show()
+
 
 # Define potentials
 V0 = lambda x: 0
@@ -48,14 +59,18 @@ def V3(x):
     else:
         return k
 
-def plot_distribution(p_pos, V):
-    p, params = rand_walk_pot(p_pos, V)
-    x_vec = np.arange(min(p), max(p))
-    fitted_pdf = norm.pdf(x_vec, loc = params[0], scale = params[1])
-    fig, ax1 = plt.subplots()
-    ax2 = ax1.twinx()
-    ax1.hist(p)
-    ax2.plot(x_vec, fitted_pdf, color="r")
-    plt.show()
+beta_k_list = [0.1, 3, 5, 7, 10]
+for elem in beta_k_list:
+    beta_k = elem
+    k = beta_k/beta
+    print(k)
+    plot_distribution(particles, V0)
+    particles = np.zeros(N)
+    plot_distribution(particles, V1)
+    particles = np.zeros(N)
+    plot_distribution(particles, V2)
+    particles = np.zeros(N)
+    plot_distribution(particles, V3)
+    particles = np.zeros(N)
 
-plot_distribution(particles, V0)
+
