@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 from scipy.stats import norm
 from scipy.constants import Boltzmann as kb, elementary_charge as elemc
 
+N= 1000
 steps = 100
 particles = np.zeros(N)
 h = 1
@@ -61,7 +62,6 @@ def V3(x):
         return k*(-1 + 2 * ((x + 3*h)/(6*h)))
     else:
         return k
-'''
 beta_k_list = [0.1, 3, 5, 7, 10]
 for elem in beta_k_list:
     beta_k = elem
@@ -75,50 +75,4 @@ for elem in beta_k_list:
     particles = np.zeros(N)
     plot_distribution(particles, V3)
     particles = np.zeros(N)
-'''
-
-''' Simple action potential below'''
-
-L = 50
-h = 1
-V_Na0 = 1
-V_K_0 = 1
-Cc = 0.07*elemc #M/V
-x_membrane = np.arange(-h, h)
-C_p = 0.1 #mM - concentration per particle
-
-N_Na = 60 + 1450 # inside + outside
-N_K = 1400 + 50 # inside + outside
-Na_pos = np.array([L/4]*1450 + [-L/4]*60)
-K_pos = np.array([L/4]*50 + [-L/4]*1400)
-
-steps = 400
-
-# channel potentials
-
-def V_channel(x, V0):
-    if -h <= x and x <= h
-        return V0
-    else:
-        return 0
-
-#TODO: count # particles (Na and K) inside and outside of the membrane
-
-def V_elec(x):
-    # calculate Qc somewhere from distribution
-    # (number of particles inside * C_p - outside concentration)
-    return Qc/Cc
-
-
-
-
-
-
-
-
-
-
-
-
-
 
