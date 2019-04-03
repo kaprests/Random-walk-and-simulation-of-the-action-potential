@@ -1,3 +1,9 @@
+#TODO:
+# Fix error(s)
+# Proposal: make some simple test potentials (time independent), and make sure everything common with earlier
+# tasks is functioning.
+
+
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import norm
@@ -39,18 +45,29 @@ def V_elec(Na_pos, K_pos):
     K_in = K_pos[K_pos < -h].size
     Qc_in = (Na_in + K_in)*C_p
     Qc = Qc_in - Qc_out
-    return elemc*Qc/Cc
+    return elemc*Qc/Cc # volts
 
 
+# Returns probability of a single particle stepping to the left
 def P_min(x, V_vec):
-    V1 = V_vec[steps + int(x/h) -1]
-    V2 = V_vec[steps + int(x/h) +1]
+    V1 = V_vec[steps + int(x) -h]
+    V2 = V_vec[steps + int(x) +h]
     rel_prob = np.exp(-beta_k*(V1 - V2))
     Pp = 1/(1 + rel_prob)
     Pm = 1 - Pp
+    if V1 - V2 != 0: # debug prints :'((
+        print("")
+        print(x)
+        print(V1 - V2)
+        print(V1)
+        print(V2)
+        print(V_vec[steps-3: steps+4])
+        print(Pm)
     return Pm
 
 
+# Function looping through time and performing the simulation. Returns a vector with the
+# time independent potential values at each time step.
 def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_func):
     # array to store values of the time dependent potential
     Ve_vec = np.zeros(steps)
@@ -62,25 +79,30 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Ve_vec[i] = Ve
 
         # add Ve to the time independent potential vectors to get total potential
-        V_Na_tot = V_Na_vec + np.heaviside(p_vec, 0.5)*Ve*elemc
+        V_Na_tot = V_Na_vec + np.heaviside(p_vec, 0.5)*Ve*elemc #Ve*elemc shoud be joules, but who knows :)
         V_K_tot = V_K_vec + np.heaviside(p_vec, 0.5)*Ve*elemc
+    
+        #print(V_Na_tot[steps-3:steps+3])
 
         # Generate vectors with 1 and -1 (vector containing the next step for each particle)
-        steps_vec_Na = np.random.rand(Na_pos_vec.size)
-        steps_vec_K = np.random.rand(K_pos_vec.size)
+        steps_vec_Na = np.random.rand(Na_pos_vec.size) # vector with probabilities
+        steps_vec_K = np.random.rand(K_pos_vec.size) # vector with probabilities
+        # loop over all probabilities and determine if it should be a step to the right or left
         for j in range(steps_vec_Na.size):
             if steps_vec_Na[j] >= P_min_func(Na_pos_vec[j], V_Na_tot):
                 steps_vec_Na[j] = 1
         for j in range(steps_vec_K.size):
             if steps_vec_K[j] >= P_min_func(K_pos_vec[j], V_K_tot):
                 steps_vec_K[j] = 1
+        # makes every step thats not a right step become a left step, maybe cleaner to use else statements for this
         steps_vec_Na[steps_vec_Na != 1] = -1
         steps_vec_K[steps_vec_K != 1] = -1
 
-        # Have every particle take one steps according to the step vector
+        # Have every particle take one step according to the step vector
         Na_pos_vec += steps_vec_Na.astype(int)
         K_pos_vec += steps_vec_K.astype(int)
 
+        # boundaries at +- L/2, if a particle is on the boundary it has to move one step into the system
         Na_pos_vec[Na_pos_vec < -L/2] = -L/2 + 1
         Na_pos_vec[Na_pos_vec > L/2] = L/2 - 1
         K_pos_vec[K_pos_vec < -L/2] = -L/2 + 1
@@ -104,6 +126,8 @@ V_Na = V_channel(pos_vec, betaV0/beta)
 V_K = V_channel(pos_vec, betaV0/beta)
 timesteps = np.arange(steps)
 
+print(V_Na)
+print(V_K)
 
 plot_dist(Na_pos, K_pos, V_Na, V_K, pos_vec, V_elec, P_min, timesteps)
 
