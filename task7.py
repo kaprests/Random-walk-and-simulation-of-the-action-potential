@@ -93,8 +93,8 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Ve_vec[i] = Ve
 
         # add Ve to the time independent potential vectors to get total potential
-        V_Na_tot = V_Na_vec + np.heaviside(p_vec, 0.5)*Ve*elemc #Ve*elemc shoud be joules, but who knows :)
-        V_K_tot = V_K_vec + np.heaviside(p_vec, 0.5)*Ve*elemc
+        V_Na_tot = V_Na_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc #Ve*elemc shoud be joules, but who knows :)
+        V_K_tot = V_K_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc
         #print(Ve*elemc)
     
         #print(V_Na_tot[steps-3:steps+3])
