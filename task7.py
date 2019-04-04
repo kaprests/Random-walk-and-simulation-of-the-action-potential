@@ -2,6 +2,7 @@
 # Fix error(s)
 # Proposal: make some simple test potentials (time independent), and make sure everything common with earlier
 # tasks is functioning.
+# -comment this code produces the same plot as in task 5 with zero and linear potentials
 
 
 import numpy as np
@@ -12,10 +13,10 @@ from scipy.constants import elementary_charge as elemc, Boltzmann as kb
 h = 1 # step length
 L = 50 # h. length of system
 T = 273 + 37 # K, temperature
-betaV0 = 0 # beta * V0, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
+betaV0_Na = 0 # beta * V0_Na, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
+betaV0_K = 0 # beta * V0_K, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 beta = 1/(kb*T)
-beta_k = 1
-Cc = 0.07*elemc*1e3 #CmM/V
+Cc = 0.07*elemc*1e3 #mMC/V
 Qc_out = 150 #mM
 C_p = 0.1 # mM
 N_Na = 50+1450
@@ -45,16 +46,28 @@ def V_elec(Na_pos, K_pos):
     K_in = K_pos[K_pos < -h].size
     Qc_in = (Na_in + K_in)*C_p
     Qc = Qc_in - Qc_out
-    return elemc*Qc/Cc # volts
+    return elemc*Qc/Cc #volts
+
+
+# Linear potential and zero potential for testing
+linpot = lambda x : x
+linpot = np.vectorize(linpot)
+
+
+def V0(Na_pos, K_pos):
+    return 0
 
 
 # Returns probability of a single particle stepping to the left
 def P_min(x, V_vec):
     V1 = V_vec[steps + int(x) -h]
     V2 = V_vec[steps + int(x) +h]
-    rel_prob = np.exp(-beta_k*(V1 - V2))
+    rel_prob = np.exp(-beta*(V1 - V2))
     Pp = 1/(1 + rel_prob)
     Pm = 1 - Pp
+    if Pm != 0.5:
+        print(Pm)
+    '''
     if V1 - V2 != 0: # debug prints :'((
         print("")
         print(x)
@@ -63,11 +76,12 @@ def P_min(x, V_vec):
         print(V2)
         print(V_vec[steps-3: steps+4])
         print(Pm)
+    '''
     return Pm
 
 
 # Function looping through time and performing the simulation. Returns a vector with the
-# time independent potential values at each time step.
+# time dependent potential values at each time step.
 def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_func):
     # array to store values of the time dependent potential
     Ve_vec = np.zeros(steps)
@@ -81,6 +95,7 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         # add Ve to the time independent potential vectors to get total potential
         V_Na_tot = V_Na_vec + np.heaviside(p_vec, 0.5)*Ve*elemc #Ve*elemc shoud be joules, but who knows :)
         V_K_tot = V_K_vec + np.heaviside(p_vec, 0.5)*Ve*elemc
+        #print(Ve*elemc)
     
         #print(V_Na_tot[steps-3:steps+3])
 
@@ -107,6 +122,7 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Na_pos_vec[Na_pos_vec > L/2] = L/2 - 1
         K_pos_vec[K_pos_vec < -L/2] = -L/2 + 1
         K_pos_vec[K_pos_vec > L/2] = L/2 - 1
+    #print("Hm:", Ve_vec[0])
     return Ve_vec
 
 
@@ -122,14 +138,18 @@ def plot_dist(Na_pos_vec, K_pos_vec, V_Na_vec, V_k_vec, p_vec, V_el_func, P_min_
     plt.show()
 
 
-V_Na = V_channel(pos_vec, betaV0/beta)
-V_K = V_channel(pos_vec, betaV0/beta)
+V_Na = V_channel(pos_vec, betaV0_Na/beta)
+V_K = V_channel(pos_vec, betaV0_K/beta)
 timesteps = np.arange(steps)
 
-print(V_Na)
-print(V_K)
 
 plot_dist(Na_pos, K_pos, V_Na, V_K, pos_vec, V_elec, P_min, timesteps)
 
 
-
+'''
+steps = 100
+V_lin = linpot(pos_vec)
+Na_pos = np.zeros(N_Na)
+K_pos = np.zeros(N_K)
+plot_dist(Na_pos, K_pos, V_lin, V_lin, pos_vec, V0, P_min, timesteps)
+'''
