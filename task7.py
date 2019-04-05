@@ -49,15 +49,6 @@ def V_elec(Na_pos, K_pos):
     return Qc/Cc #volts
 
 
-# Linear potential and zero potential for testing
-linpot = lambda x : x
-linpot = np.vectorize(linpot)
-
-
-def V0(Na_pos, K_pos):
-    return 0
-
-
 # Returns probability of a single particle stepping to the left
 def P_min(x, V_vec):
     V1 = V_vec[steps + int(x) -h]
@@ -66,6 +57,23 @@ def P_min(x, V_vec):
     Pp = 1/(1 + rel_prob)
     Pm = 1 - Pp
     return Pm
+
+# Regulates potential according to voltage difference
+min_vol = -70 #mV
+max_vol = 30 #mV
+betaopen_pot = 1
+
+def volt_reg(current_voltage):
+    if current_voltage <= min_vol:
+        Na_pot = V_channel(pos_vec, betaopen_pot/beta)
+        K_pot = V_channel(pos_vec, betaV0_K/beta)
+    if current_voltage >= max_vol:
+        Na_pot = V_channel(pos_vec, betaV0_Na/beta)
+        K_pot = V_channel(pos_vec, betaopen_pot/beta)
+
+    return Na_pot, K_pot
+
+
 
 
 # Function looping through time and performing the simulation. Returns a vector with the
@@ -121,10 +129,10 @@ def plot_dist(Na_pos_vec, K_pos_vec, V_Na_vec, V_k_vec, p_vec, V_el_func, P_min_
     plt.plot(t_vec, Ve_vec)
     plt.show()
 
-
+'''
 V_Na = V_channel(pos_vec, betaV0_Na/beta)
 V_K = V_channel(pos_vec, betaV0_K/beta)
 timesteps = np.arange(steps)
-
+'''
 
 plot_dist(Na_pos, K_pos, V_Na, V_K, pos_vec, V_elec, P_min, timesteps)
