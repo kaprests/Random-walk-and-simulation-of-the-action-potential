@@ -16,7 +16,7 @@ T = 273 + 37 # K, temperature
 betaV0_Na = 0 # beta * V0_Na, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 betaV0_K = 0 # beta * V0_K, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 beta = 1/(kb*T)
-Cc = 0.07*elemc*1e3 #mMC/V
+Cc = 0.07*1e3 #CmMC/V
 Qc_out = 150 #mM
 C_p = 0.1 # mM
 N_Na = 50+1450
@@ -46,7 +46,7 @@ def V_elec(Na_pos, K_pos):
     K_in = K_pos[K_pos < -h].size
     Qc_in = (Na_in + K_in)*C_p
     Qc = Qc_in - Qc_out
-    return elemc*Qc/Cc #volts
+    return Qc/Cc #volts
 
 
 # Linear potential and zero potential for testing
@@ -65,18 +65,6 @@ def P_min(x, V_vec):
     rel_prob = np.exp(-beta*(V1 - V2))
     Pp = 1/(1 + rel_prob)
     Pm = 1 - Pp
-    if Pm != 0.5:
-        print(Pm)
-    '''
-    if V1 - V2 != 0: # debug prints :'((
-        print("")
-        print(x)
-        print(V1 - V2)
-        print(V1)
-        print(V2)
-        print(V_vec[steps-3: steps+4])
-        print(Pm)
-    '''
     return Pm
 
 
@@ -93,11 +81,8 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Ve_vec[i] = Ve
 
         # add Ve to the time independent potential vectors to get total potential
-        V_Na_tot = V_Na_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc #Ve*elemc shoud be joules, but who knows :)
+        V_Na_tot = V_Na_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc
         V_K_tot = V_K_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc
-        #print(Ve*elemc)
-    
-        #print(V_Na_tot[steps-3:steps+3])
 
         # Generate vectors with 1 and -1 (vector containing the next step for each particle)
         steps_vec_Na = np.random.rand(Na_pos_vec.size) # vector with probabilities
@@ -122,7 +107,6 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Na_pos_vec[Na_pos_vec > L/2] = L/2 - 1
         K_pos_vec[K_pos_vec < -L/2] = -L/2 + 1
         K_pos_vec[K_pos_vec > L/2] = L/2 - 1
-    #print("Hm:", Ve_vec[0])
     return Ve_vec
 
 
@@ -144,12 +128,3 @@ timesteps = np.arange(steps)
 
 
 plot_dist(Na_pos, K_pos, V_Na, V_K, pos_vec, V_elec, P_min, timesteps)
-
-
-'''
-steps = 100
-V_lin = linpot(pos_vec)
-Na_pos = np.zeros(N_Na)
-K_pos = np.zeros(N_K)
-plot_dist(Na_pos, K_pos, V_lin, V_lin, pos_vec, V0, P_min, timesteps)
-'''
