@@ -19,8 +19,8 @@ beta = 1/(kb*T)
 Cc = 0.07*1e3 #CmMC/V
 Qc_out = 150 #mM
 C_p = 0.1 # mM
-N_Na = 50+1450
-N_K = 1400+50
+N_Na = 50 + 1450
+N_K = 1400 + 50
 Na_pos = np.array([-L//4]*50 + [L//4]*1450)
 K_pos = np.array([-L//4]*1400 + [L//4]*50)
 steps = 500
@@ -61,17 +61,34 @@ def P_min(x, V_vec):
 # Regulates potential according to voltage difference
 min_vol = -70 #mV
 max_vol = 30 #mV
-betaopen_pot = 1
+open_pot = 1
 
 def volt_reg(current_voltage):
     if current_voltage <= min_vol:
-        Na_pot = V_channel(pos_vec, betaopen_pot/beta)
+        Na_pot = V_channel(pos_vec, open_pot/beta)
         K_pot = V_channel(pos_vec, betaV0_K/beta)
     if current_voltage >= max_vol:
         Na_pot = V_channel(pos_vec, betaV0_Na/beta)
-        K_pot = V_channel(pos_vec, betaopen_pot/beta)
+        K_pot = V_channel(pos_vec, open_pot/beta)
 
     return Na_pot, K_pot
+
+# Pumps ions in and out membrane, step counter defined in rand_walk()
+def pump(Na_pos, K_pos):
+    N_Na_in = Na_pos[Na_pos < -h].size
+    N_K_out = K_pos[K_pos > h].size
+    if N_Na_in <= 3 or N_K_out <= 2:
+        return None
+    Na_pos.sort()
+    K_pos.sort()
+    Na_index = np.argwhere(Na_pos < -h)
+    K_index = np.argwhere(K_pos > h)
+    Na_pos[Na_index[-3:]] = h
+    K_pos[K_index[:2]] = -h
+    return Na_pos, K_pos
+
+
+
 
 
 
