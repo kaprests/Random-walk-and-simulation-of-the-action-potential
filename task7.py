@@ -9,7 +9,7 @@ T = 273 + 37 # K, temperature
 betaV0_Na = 0 # beta * V0_Na, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 betaV0_K = 0 # beta * V0_K, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 beta = 1/(kb*T)
-Cc = 0.07*1e3 #CmMC/V
+Cc = 0.07*elemc*1e3 #CmMC/V
 Qc_out = 150 #mM
 C_p = 0.1 # mM
 N_Na = 50 + 1450
@@ -26,7 +26,6 @@ open_pot = 1
 
 
 # potentials
-
 def V_channel(pos_vec, V_0):
     channel_vec = np.array([V_0]*(2*h +1))
     zero_vec = np.zeros((pos_vec.size - channel_vec.size)//2)
