@@ -1,10 +1,3 @@
-#TODO:
-# Fix error(s)
-# Proposal: make some simple test potentials (time independent), and make sure everything common with earlier
-# tasks is functioning.
-# -comment this code produces the same plot as in task 5 with zero and linear potentials
-
-
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import norm
@@ -29,15 +22,12 @@ pos_vec = np.arange(-steps, steps+1)
 
 # potentials
 
-# time independent potential of the channels
-def V_channel(x, V_0):
-    if -h <= x and x <= h:
-        return V_0
-    else:
-        return 0
-
-
-V_channel = np.vectorize(V_channel)
+def V_channel(pos_vec, V_0):
+    channel_vec = np.array([V_0]*(2*h +1))
+    zero_vec = np.zeros((pos_vec.size - channel_vec.size)//2)
+    V_vec = np.concatenate((zero_vec, channel_vec))
+    V_vec = np.concatenate((V_vec, zero_vec))
+    return V_vec
 
 
 # Time dependent potential
@@ -49,15 +39,6 @@ def V_elec(Na_pos, K_pos):
     return elemc*Qc/Cc #volts
 
 
-# Linear potential and zero potential for testing
-linpot = lambda x : x
-linpot = np.vectorize(linpot)
-
-
-def V0(Na_pos, K_pos):
-    return 0
-
-
 # Returns probability of a single particle stepping to the left
 def P_min(x, V_vec):
     V1 = V_vec[steps + int(x) -h]
@@ -65,18 +46,6 @@ def P_min(x, V_vec):
     rel_prob = np.exp(-beta*(V1 - V2))
     Pp = 1/(1 + rel_prob)
     Pm = 1 - Pp
-    if Pm != 0.5:
-        print(Pm)
-    '''
-    if V1 - V2 != 0: # debug prints :'((
-        print("")
-        print(x)
-        print(V1 - V2)
-        print(V1)
-        print(V2)
-        print(V_vec[steps-3: steps+4])
-        print(Pm)
-    '''
     return Pm
 
 
@@ -109,7 +78,6 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         for j in range(steps_vec_K.size):
             if steps_vec_K[j] >= P_min_func(K_pos_vec[j], V_K_tot):
                 steps_vec_K[j] = 1
-        # makes every step thats not a right step become a left step, maybe cleaner to use else statements for this
         steps_vec_Na[steps_vec_Na != 1] = -1
         steps_vec_K[steps_vec_K != 1] = -1
 
@@ -122,7 +90,6 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Na_pos_vec[Na_pos_vec > L/2] = L/2 - 1
         K_pos_vec[K_pos_vec < -L/2] = -L/2 + 1
         K_pos_vec[K_pos_vec > L/2] = L/2 - 1
-    #print("Hm:", Ve_vec[0])
     return Ve_vec
 
 
@@ -146,10 +113,3 @@ timesteps = np.arange(steps)
 plot_dist(Na_pos, K_pos, V_Na, V_K, pos_vec, V_elec, P_min, timesteps)
 
 
-'''
-steps = 100
-V_lin = linpot(pos_vec)
-Na_pos = np.zeros(N_Na)
-K_pos = np.zeros(N_K)
-plot_dist(Na_pos, K_pos, V_lin, V_lin, pos_vec, V0, P_min, timesteps)
-'''

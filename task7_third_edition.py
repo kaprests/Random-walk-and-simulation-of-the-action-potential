@@ -6,8 +6,8 @@ from scipy.constants import Boltzmann as kb, elementary_charge as elemc
 h = 1 # step length
 L = 50 # system length
 T = 273 + 37
-beta_V0_Na = 3
-beta_V0_K = 3
+beta_V0_Na = 0
+beta_V0_K = 0
 beta = 1/(kb*T)
 Cc = 0.07*elemc*1e3 # mMC/V
 Qc_out = 150 # mM
@@ -17,15 +17,15 @@ N_K = 1400+50
 Na_pos = np.array([-L//2]*50 + [L//2]*1450)
 K_pos = np.array([-L//2]*1400 + [L//2]*50)
 t_steps = 500
-position_vec = np.arange(-t_steps, t_steps +1)
+position_vec = np.arange(-t_steps, t_steps +1).astype(float)
 
 
-def V_channel(x, V_0):
-    if -h <= x and x <= h:
-        return V_0
-    else:
-        return 0
-V_channel = np.vectorize(V_channel)
+def V_channel(pos_vec, V_0):
+    channel_vec = np.array([V_0]*(2*h +1))
+    zero_vec = np.zeros((pos_vec.size - channel_vec.size)//2)
+    V_vec = np.concatenate((zero_vec, channel_vec))
+    V_vec = np.concatenate((V_vec, zero_vec))
+    return V_vec
 
 
 def V_electric(Na_pos_vec, K_pos_vec):
@@ -57,17 +57,17 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, pos_vec, P_min_func, V_e
         Na_steps_vec = np.random.rand(Na_pos_vec.size)
         K_steps_vec = np.random.rand(K_pos_vec.size)
 
-        for i in range(Na_steps_vec.size):
-            if Na_steps_vec[i] >= P_min_func(Na_pos_vec[i], V_Na_tot):
-                Na_steps_vec[i] = 1
+        for j in range(Na_steps_vec.size):
+            if Na_steps_vec[j] >= P_min_func(Na_pos_vec[j], V_Na_tot):
+                Na_steps_vec[j] = 1
             else:
-                Na_steps_vec[i] = -1
+                Na_steps_vec[j] = -1
 
-        for i in range(K_steps_vec.size):
-            if K_steps_vec[i] >= P_min_func(K_pos_vec[i], V_Na_tot):
-                K_steps_vec[i] = 1
+        for j in range(K_steps_vec.size):
+            if K_steps_vec[j] >= P_min_func(K_pos_vec[j], V_K_tot):
+                K_steps_vec[j] = 1
             else:
-                K_steps_vec[i] = -1
+                K_steps_vec[j] = -1
 
         Na_pos_vec += Na_steps_vec.astype(int)
         K_pos_vec += K_steps_vec.astype(int)
@@ -95,7 +95,6 @@ def plot_distribution(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, pos_vec, t_vec, 
 V_Na = V_channel(position_vec, beta_V0_Na/beta)
 V_K = V_channel(position_vec, beta_V0_K/beta)
 time_vec = np.arange(t_steps)
-
 
 plot_distribution(Na_pos, K_pos, V_Na, V_K, position_vec, time_vec, P_min, V_electric)
 
