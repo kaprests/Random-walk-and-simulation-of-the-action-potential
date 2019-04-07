@@ -9,15 +9,20 @@ T = 273 + 37 # K, temperature
 betaV0_Na = 0 # beta * V0_Na, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 betaV0_K = 0 # beta * V0_K, beta = 1/kb*T, V0 some constant and kb = Boltzmanns constant
 beta = 1/(kb*T)
-Cc = 0.07*elemc*1e3 #mMC/V
+Cc = 0.07*1e3 #CmMC/V
 Qc_out = 150 #mM
 C_p = 0.1 # mM
-N_Na = 50+1450
-N_K = 1400+50
+N_Na = 50 + 1450
+N_K = 1400 + 50
 Na_pos = np.array([-L//4]*50 + [L//4]*1450)
 K_pos = np.array([-L//4]*1400 + [L//4]*50)
 steps = 500
 pos_vec = np.arange(-steps, steps+1)
+
+# Regulates potential according to voltage difference
+min_vol = -70 #mV
+max_vol = 30 #mV
+open_pot = 1
 
 
 # potentials
@@ -49,6 +54,31 @@ def P_min(x, V_vec):
     return Pm
 
 
+def volt_reg(current_voltage):
+    if current_voltage <= min_vol:
+        Na_pot = V_channel(pos_vec, open_pot/beta)
+        K_pot = V_channel(pos_vec, betaV0_K/beta)
+    if current_voltage >= max_vol:
+        Na_pot = V_channel(pos_vec, betaV0_Na/beta)
+        K_pot = V_channel(pos_vec, open_pot/beta)
+    return Na_pot, K_pot
+
+
+# Pumps ions in and out membrane, step counter defined in rand_walk()
+def pump(Na_pos, K_pos):
+    N_Na_in = Na_pos[Na_pos < -h].size
+    N_K_out = K_pos[K_pos > h].size
+    if N_Na_in <= 3 or N_K_out <= 2:
+        return None
+    Na_pos.sort()
+    K_pos.sort()
+    Na_index = np.argwhere(Na_pos < -h)
+    K_index = np.argwhere(K_pos > h)
+    Na_pos[Na_index[-3:]] = h
+    K_pos[K_index[:2]] = -h
+    return Na_pos, K_pos
+
+
 # Function looping through time and performing the simulation. Returns a vector with the
 # time dependent potential values at each time step.
 def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_func):
@@ -62,11 +92,8 @@ def rand_walk(Na_pos_vec, K_pos_vec, V_Na_vec, V_K_vec, p_vec, V_el_func, P_min_
         Ve_vec[i] = Ve
 
         # add Ve to the time independent potential vectors to get total potential
-        V_Na_tot = V_Na_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc #Ve*elemc shoud be joules, but who knows :)
+        V_Na_tot = V_Na_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc
         V_K_tot = V_K_vec + np.heaviside(-p_vec, 0.5)*Ve*elemc
-        #print(Ve*elemc)
-    
-        #print(V_Na_tot[steps-3:steps+3])
 
         # Generate vectors with 1 and -1 (vector containing the next step for each particle)
         steps_vec_Na = np.random.rand(Na_pos_vec.size) # vector with probabilities
@@ -109,7 +136,5 @@ V_Na = V_channel(pos_vec, betaV0_Na/beta)
 V_K = V_channel(pos_vec, betaV0_K/beta)
 timesteps = np.arange(steps)
 
-
 plot_dist(Na_pos, K_pos, V_Na, V_K, pos_vec, V_elec, P_min, timesteps)
-
 
